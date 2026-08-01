@@ -40,6 +40,8 @@ die()  { echo "  ${RED}✗${OFF} $*" >&2; exit 1; }
 [[ $EUID -eq 0 ]] || die "Esegui con sudo"
 command -v git >/dev/null 2>&1 || die "git non installato:  sudo apt install -y git"
 
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+
 . /etc/os-release 2>/dev/null || true
 case "${ID}${ID_LIKE:-}" in
   *debian*|*ubuntu*) SVC_USER="www-data" ;;
@@ -95,6 +97,18 @@ if [[ "$BEFORE" == "$AFTER" ]]; then
 else
   ok "$BEFORE → $AFTER"
   git --no-pager log --oneline "$BEFORE..$AFTER" 2>/dev/null | head -10 | sed 's/^/     /' || true
+fi
+
+# Lo script aggiorna il checkout, non sé stesso: se lo si lancia da una copia
+# esterna (tipico: quella scaricata a mano la prima volta) si continuerebbe a
+# eseguire una versione vecchia senza accorgersene. Qui passa il testimone
+# alla versione appena scaricata, una volta sola.
+CANONICAL="$APP_DIR/deploy/update.sh"
+if [[ -z "${GS_REEXEC:-}" && -f "$CANONICAL" ]] && ! cmp -s "$SELF" "$CANONICAL"; then
+  warn "stai eseguendo una copia diversa da quella nel checkout"
+  ok "proseguo con la versione aggiornata: $CANONICAL"
+  export GS_REEXEC=1
+  exec bash "$CANONICAL" --dir "$APP_DIR" --branch "$BRANCH"
 fi
 
 step "Strumenti di compilazione"
