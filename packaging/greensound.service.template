@@ -1,0 +1,35 @@
+[Unit]
+Description=Greensound API
+Documentation=file://__APP_DIR__/LEGGIMI.md
+After=network.target
+
+[Service]
+Type=simple
+User=__USER__
+Group=__GROUP__
+WorkingDirectory=__APP_DIR__
+
+Environment=NODE_ENV=production
+Environment=PORT=__PORT__
+# Un solo Apache davanti: fidati di esattamente un hop di X-Forwarded-For.
+Environment=TRUST_PROXY=1
+Environment=DATABASE_PATH=__APP_DIR__/data/greensound.db
+Environment=UPLOAD_DIR=__APP_DIR__/data/uploads
+
+ExecStart=/usr/bin/env node server/index.js
+Restart=on-failure
+RestartSec=5
+
+# Ascolta solo su loopback: l'unico che gli parla è Apache.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=__APP_DIR__/data
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=greensound
+
+[Install]
+WantedBy=multi-user.target

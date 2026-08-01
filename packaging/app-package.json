@@ -1,0 +1,22 @@
+{
+  "name": "greensound-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Greensound — runtime package (site already built, server source included)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "admin": "node server/scripts/set-admin.js",
+    "import": "node server/scripts/import-json.js"
+  },
+  "dependencies": {
+    "bcryptjs": "3.0.3",
+    "better-sqlite3": "13.0.2",
+    "cookie-parser": "1.4.7",
+    "express": "5.2.1",
+    "multer": "2.2.0"
+  }
+}

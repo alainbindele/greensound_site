@@ -1,0 +1,47 @@
+name: Deploy
+
+# Aggiorna il sito sul server a ogni push su main.
+#
+# Prerequisiti — Settings → Secrets and variables → Actions:
+#   SSH_HOST        IP o dominio dell'istanza EC2
+#   SSH_USER        ubuntu (Ubuntu) oppure ec2-user (Amazon Linux)
+#   SSH_KEY         contenuto della chiave privata con accesso al server
+#
+# Il server deve già essere un checkout git:
+#   sudo /var/www/greensound/deploy/update.sh --repo <url-del-repo>
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  # Un deploy alla volta: due update.sh in parallelo si darebbero fastidio.
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      # Se il sito non compila qui, non ha senso toccare il server.
+      - run: npm run build
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggiorna il server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: sudo /var/www/greensound/deploy/update.sh

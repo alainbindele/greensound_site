@@ -1,0 +1,41 @@
+#env
+.env
+.env.*
+!.env.example
+
+# Runtime data: SQLite database and uploaded files. This is the site's
+# content — back it up, but never commit it.
+data/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+
+# Pacchetto di deploy generato da "npm run package".
+# È output, non sorgente: si rigenera in un comando e in git occuperebbe
+# spazio per sempre senza poter essere confrontato fra versioni.
+dist-package
+dist-package.zip
+*.tar.gz
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.claude/settings.local.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,71 @@
+# Greensound — virtual host generato da deploy.sh
+#
+# Solo HTTP: certbot aggiunge da sé il blocco :443 e il redirect quando
+# emetti il certificato. Un vhost con "SSLEngine on" e certificati non ancora
+# esistenti impedirebbe ad Apache di avviarsi.
+#
+# Apache serve i file statici dal disco e inoltra a Node solo /api e /uploads.
+
+<VirtualHost *:80>
+    ServerName __DOMAIN__
+__SERVER_ALIAS__
+    DocumentRoot __APP_DIR__/dist
+
+    ErrorLog  __ERROR_LOG__
+    CustomLog __ACCESS_LOG__ combined
+
+    # --- API e upload verso Node -----------------------------------------
+    # Devono precedere le regole statiche: ProxyPass ha la precedenza sul
+    # filesystem, così /api non finisce mai nel fallback su index.html.
+    ProxyPreserveHost On
+    ProxyTimeout 60
+
+    ProxyPass        /api     http://127.0.0.1:__PORT__/api
+    ProxyPassReverse /api     http://127.0.0.1:__PORT__/api
+    ProxyPass        /uploads http://127.0.0.1:__PORT__/uploads
+    ProxyPassReverse /uploads http://127.0.0.1:__PORT__/uploads
+
+    # Node deve sapere chi è il client vero: il rate limiting del login
+    # altrimenti vedrebbe sempre 127.0.0.1 e bloccherebbe tutti insieme.
+    # (certbot aggiunge X-Forwarded-Proto https sul vhost 443)
+    RequestHeader set X-Forwarded-Proto "http"
+
+    # Gli upload sono limitati a 10 MB dall'API; lasciamo un margine così a
+    # rifiutare i file troppo grandi è l'applicazione, con un messaggio
+    # chiaro, invece che Apache con un 413 secco.
+    LimitRequestBody 12582912
+
+    # --- Sito statico -----------------------------------------------------
+    <Directory __APP_DIR__/dist>
+        Require all granted
+        Options -Indexes +FollowSymLinks
+        AllowOverride None
+
+        # Routing lato client: /Events e /AdminNews non sono file su disco.
+        FallbackResource /index.html
+    </Directory>
+
+    <IfModule mod_expires.c>
+        ExpiresActive On
+
+        # I nomi dei file di build contengono un hash: cache a vita.
+        <LocationMatch "^/assets/">
+            ExpiresDefault "access plus 1 year"
+            Header set Cache-Control "public, immutable"
+        </LocationMatch>
+
+        # index.html mai in cache, altrimenti dopo un aggiornamento il
+        # browser continua a chiedere asset che non esistono più.
+        <LocationMatch "^/(index\.html)?$">
+            ExpiresDefault "access plus 0 seconds"
+            Header set Cache-Control "no-cache, must-revalidate"
+        </LocationMatch>
+    </IfModule>
+
+    <IfModule mod_headers.c>
+        Header always set X-Content-Type-Options "nosniff"
+        Header always set Referrer-Policy "strict-origin-when-cross-origin"
+        Header always set X-Frame-Options "SAMEORIGIN"
+        Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; media-src 'self'; frame-ancestors 'self'"
+    </IfModule>
+</VirtualHost>

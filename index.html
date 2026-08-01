@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/jpeg" href="/greensound-logo.jpg" />
+    <link rel="apple-touch-icon" href="/greensound-logo.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ecfdf5" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#04140f" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300..800;1,300..800&family=Orbitron:wght@500..900&display=swap"
+    />
+
+    <title>Greensound Project</title>
+
+    <script>
+      // Apply the stored theme before first paint so the page never flashes
+      // light before switching to dark.
+      (function () {
+        try {
+          var stored = localStorage.getItem("greensound-theme");
+          var hour = new Date().getHours();
+          var dark = stored
+            ? stored === "dark"
+            : window.matchMedia("(prefers-color-scheme: dark)").matches ||
+              hour < 6 ||
+              hour >= 18;
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {
+          /* storage blocked — fall back to light */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

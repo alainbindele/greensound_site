@@ -1,0 +1,84 @@
+# Greensound — virtual host HTTPS con certificato fornito da te.
+# Generato da deploy.sh: non modificarlo a mano, verrebbe sovrascritto.
+
+<VirtualHost *:80>
+    ServerName __DOMAIN__
+__SERVER_ALIAS__
+    # Tutto il traffico in chiaro va su HTTPS.
+    RedirectPermanent / https://__DOMAIN__/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName __DOMAIN__
+__SERVER_ALIAS__
+    DocumentRoot __APP_DIR__/dist
+
+    ErrorLog  __ERROR_LOG__
+    CustomLog __ACCESS_LOG__ combined
+
+    # --- TLS --------------------------------------------------------------
+    SSLEngine on
+    SSLCertificateFile    __CERT_FILE__
+    SSLCertificateKeyFile __KEY_FILE__
+__CHAIN_LINE__
+    # Solo TLS 1.2 e 1.3; niente cifrari obsoleti.
+    SSLProtocol             -all +TLSv1.2 +TLSv1.3
+    SSLCipherSuite          ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305
+    SSLHonorCipherOrder     off
+    SSLSessionTickets       off
+
+    # --- API e upload verso Node -----------------------------------------
+    # Devono precedere le regole statiche: ProxyPass ha la precedenza sul
+    # filesystem, così /api non finisce mai nel fallback su index.html.
+    ProxyPreserveHost On
+    ProxyTimeout 60
+
+    ProxyPass        /api     http://127.0.0.1:__PORT__/api
+    ProxyPassReverse /api     http://127.0.0.1:__PORT__/api
+    ProxyPass        /uploads http://127.0.0.1:__PORT__/uploads
+    ProxyPassReverse /uploads http://127.0.0.1:__PORT__/uploads
+
+    # Node deve sapere che la richiesta originale era HTTPS e chi è il client
+    # vero: il rate limiting del login altrimenti vedrebbe sempre 127.0.0.1.
+    RequestHeader set X-Forwarded-Proto "https"
+
+    # Gli upload sono limitati a 10 MB dall'API; lasciamo un margine così a
+    # rifiutare i file troppo grandi è l'applicazione, con un messaggio
+    # chiaro, invece che Apache con un 413 secco.
+    LimitRequestBody 12582912
+
+    # --- Sito statico -----------------------------------------------------
+    <Directory __APP_DIR__/dist>
+        Require all granted
+        Options -Indexes +FollowSymLinks
+        AllowOverride None
+
+        # Routing lato client: /Events e /AdminNews non sono file su disco.
+        FallbackResource /index.html
+    </Directory>
+
+    <IfModule mod_expires.c>
+        ExpiresActive On
+
+        # I nomi dei file di build contengono un hash: cache a vita.
+        <LocationMatch "^/assets/">
+            ExpiresDefault "access plus 1 year"
+            Header set Cache-Control "public, immutable"
+        </LocationMatch>
+
+        # index.html mai in cache, altrimenti dopo un aggiornamento il
+        # browser continua a chiedere asset che non esistono più.
+        <LocationMatch "^/(index\.html)?$">
+            ExpiresDefault "access plus 0 seconds"
+            Header set Cache-Control "no-cache, must-revalidate"
+        </LocationMatch>
+    </IfModule>
+
+    <IfModule mod_headers.c>
+        Header always set X-Content-Type-Options "nosniff"
+        Header always set Referrer-Policy "strict-origin-when-cross-origin"
+        Header always set X-Frame-Options "SAMEORIGIN"
+        Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; media-src 'self'; frame-ancestors 'self'"
+    </IfModule>
+</VirtualHost>

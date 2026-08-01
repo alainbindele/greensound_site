@@ -1,0 +1,464 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Greensound design tokens
+   Palette: "Sustainable Energy / Climate Tech" — emerald primary + solar gold
+   accent. Every value below is a semantic token; components must never
+   hardcode a hex or a raw `emerald-400`.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    /* --- shadcn surface scale (light) --- */
+    --background: 152 45% 98%;
+    --foreground: 164 40% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 164 40% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 164 40% 12%;
+
+    --primary: 161 94% 30%; /* #059669 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 152 60% 94%;
+    --secondary-foreground: 164 86% 16%;
+    --muted: 152 30% 95%;
+    --muted-foreground: 160 18% 36%; /* 5.9:1 on background */
+    --accent: 152 60% 94%;
+    --accent-foreground: 164 86% 16%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 152 40% 86%;
+    --input: 152 40% 86%;
+    --ring: 161 94% 30%;
+
+    --radius: 0.875rem;
+
+    /* --- brand tokens --- */
+    /* `brand` is the accessible *text* green: it flips per theme so emerald
+       type always clears 4.5:1. `brand-solid` is for filled surfaces. */
+    --brand: 163 94% 24%; /* #047857 — 5.5:1 on light bg */
+    --brand-solid: 161 94% 30%;
+    --brand-soft: 152 76% 80%;
+    --solar: 32 95% 44%; /* #d97706 — 4.6:1 on light bg */
+
+    /* --- signal colors: the three pillars of the project --- */
+    --signal-nature: 152 76% 45%;
+    --signal-tech: 178 78% 40%;
+    --signal-music: 32 95% 50%;
+
+    /* --- glass / elevation --- */
+    --glass-bg: 0 0% 100%;
+    --glass-opacity: 0.62;
+    --glass-border: 161 40% 70%;
+    --glass-blur: 20px;
+
+    --elevation-1: 0 1px 2px hsl(164 40% 12% / 0.06);
+    --elevation-2: 0 6px 16px -4px hsl(164 40% 12% / 0.1);
+    --elevation-3: 0 18px 40px -12px hsl(164 40% 12% / 0.18);
+    --glow: 0 0 0 1px hsl(var(--brand-solid) / 0.18), 0 12px 40px -12px hsl(var(--brand-solid) / 0.35);
+
+    /* --- rhythm (density 4/10 — marketing spacious) --- */
+    --space-section: clamp(4rem, 10vw, 8rem);
+    --space-block: clamp(2rem, 5vw, 3.5rem);
+
+    /* --- motion (tier: standard) --- */
+    --dur-fast: 150ms;
+    --dur-base: 260ms;
+    --dur-slow: 600ms;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-organic: cubic-bezier(0.65, 0, 0.35, 1);
+
+    /* Set to 0 by the reduced-motion guard so ambient loops can opt out
+       without every component re-implementing the media query. */
+    --ambient: 1;
+
+    /* --- charts --- */
+    --chart-1: 161 94% 30%;
+    --chart-2: 178 78% 40%;
+    --chart-3: 32 95% 50%;
+    --chart-4: 152 76% 55%;
+    --chart-5: 200 70% 45%;
+
+    --sidebar-background: 152 45% 98%;
+    --sidebar-foreground: 164 40% 12%;
+    --sidebar-primary: 161 94% 30%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 152 60% 94%;
+    --sidebar-accent-foreground: 164 86% 16%;
+    --sidebar-border: 152 40% 86%;
+    --sidebar-ring: 161 94% 30%;
+  }
+
+  .dark {
+    --background: 161 67% 5%; /* #04140f */
+    --foreground: 152 60% 96%;
+    --card: 164 55% 8%;
+    --card-foreground: 152 60% 96%;
+    --popover: 164 60% 7%;
+    --popover-foreground: 152 60% 96%;
+
+    --primary: 158 64% 52%; /* #34d399 */
+    --primary-foreground: 164 86% 8%;
+    --secondary: 164 40% 14%;
+    --secondary-foreground: 152 60% 96%;
+    --muted: 164 35% 13%;
+    --muted-foreground: 160 18% 68%; /* 7.4:1 on background */
+    --accent: 164 40% 16%;
+    --accent-foreground: 152 60% 96%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 160 30% 18%;
+    --input: 160 30% 20%;
+    --ring: 158 64% 52%;
+
+    --brand: 158 64% 52%; /* 10:1 on dark bg */
+    --brand-solid: 160 84% 39%;
+    --brand-soft: 164 50% 22%;
+    --solar: 38 92% 55%;
+
+    --signal-nature: 152 70% 50%;
+    --signal-tech: 178 70% 48%;
+    --signal-music: 38 92% 58%;
+
+    --glass-bg: 164 60% 7%;
+    --glass-opacity: 0.55;
+    --glass-border: 158 40% 40%;
+
+    --elevation-1: 0 1px 2px hsl(0 0% 0% / 0.4);
+    --elevation-2: 0 6px 16px -4px hsl(0 0% 0% / 0.5);
+    --elevation-3: 0 18px 40px -12px hsl(0 0% 0% / 0.6);
+    --glow: 0 0 0 1px hsl(var(--brand) / 0.25), 0 12px 48px -12px hsl(var(--brand) / 0.4);
+
+    --chart-1: 158 64% 52%;
+    --chart-2: 178 70% 48%;
+    --chart-3: 38 92% 58%;
+    --chart-4: 152 70% 40%;
+    --chart-5: 200 70% 60%;
+
+    --sidebar-background: 164 55% 8%;
+    --sidebar-foreground: 152 60% 96%;
+    --sidebar-primary: 158 64% 52%;
+    --sidebar-primary-foreground: 164 86% 8%;
+    --sidebar-accent: 164 40% 16%;
+    --sidebar-accent-foreground: 152 60% 96%;
+    --sidebar-border: 160 30% 18%;
+    --sidebar-ring: 158 64% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* The nav is fixed at 4rem — keep anchor targets clear of it. */
+    scroll-padding-top: 5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    font-size: 1rem;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One visible, high-contrast focus style for the whole app. Never removed —
+     only restyled. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: hsl(var(--brand-solid) / 0.28);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--brand-solid) / 0.45);
+    border-radius: 999px;
+    border: 2px solid hsl(var(--muted));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--brand-solid) / 0.7);
+  }
+}
+
+/* ==========================================================================
+   Components
+   ========================================================================== */
+
+@layer components {
+  /* --- Glass surfaces --------------------------------------------------- */
+  /* Legacy alias: pages across the app already use `.glass-morphism`. */
+  .glass,
+  .glass-morphism {
+    background: hsl(var(--glass-bg) / var(--glass-opacity));
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid hsl(var(--glass-border) / 0.28);
+  }
+
+  /* Interactive card: lifts, brightens its rim, and grows a soft brand glow. */
+  .card-lift {
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out);
+    will-change: transform;
+  }
+  .card-lift:hover {
+    transform: translateY(-6px);
+    border-color: hsl(var(--brand) / 0.55);
+    box-shadow: var(--glow);
+  }
+  @media (hover: none) {
+    /* Touch devices get the pressed state instead of a stuck hover state. */
+    .card-lift:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    .card-lift:active {
+      transform: scale(0.985);
+    }
+  }
+
+  /* --- Type ------------------------------------------------------------- */
+  .text-gradient-bio {
+    background-image: linear-gradient(
+      100deg,
+      hsl(var(--signal-nature)),
+      hsl(var(--brand-solid)) 45%,
+      hsl(var(--signal-tech))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Gradient text drops the accessible name for some engines — keep a
+       fallback colour underneath for forced-colors mode. */
+    -webkit-text-fill-color: transparent;
+  }
+  @media (forced-colors: active) {
+    .text-gradient-bio {
+      -webkit-text-fill-color: currentColor;
+      color: CanvasText;
+    }
+  }
+
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.32em] text-brand;
+  }
+
+  /* --- Layout ----------------------------------------------------------- */
+  .shell {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8;
+  }
+  .shell-narrow {
+    @apply mx-auto w-full max-w-3xl px-5 sm:px-6 lg:px-8;
+  }
+  .section {
+    padding-block: var(--space-section);
+  }
+
+  /* --- Ambient background ----------------------------------------------- */
+  /* Aurora mesh: four blurred colour wells that drift. This is the "nature"
+     layer that sits under every page. */
+  .aurora-field {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .aurora-field::before,
+  .aurora-field::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    animation: aurora-drift calc(26s / var(--ambient, 1)) var(--ease-organic) infinite alternate;
+  }
+  .aurora-field::before {
+    width: 45vw;
+    height: 45vw;
+    top: -10%;
+    left: -8%;
+    background: radial-gradient(circle, hsl(var(--signal-nature) / 0.55), transparent 68%);
+  }
+  .aurora-field::after {
+    width: 38vw;
+    height: 38vw;
+    bottom: -12%;
+    right: -6%;
+    background: radial-gradient(circle, hsl(var(--signal-tech) / 0.45), transparent 68%);
+    animation-delay: -9s;
+    animation-duration: 34s;
+  }
+
+  /* Fine film grain — keeps the large flat gradients from banding. */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  }
+
+  /* --- Accents ---------------------------------------------------------- */
+  .hairline {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--brand) / 0.45) 20%,
+      hsl(var(--solar) / 0.4) 50%,
+      hsl(var(--brand) / 0.45) 80%,
+      transparent
+    );
+  }
+
+  /* Expanding rings, like a signal leaving a leaf. */
+  .pulse-ring::before,
+  .pulse-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid hsl(var(--brand) / 0.55);
+    animation: pulse-out calc(3.2s / var(--ambient, 1)) var(--ease-out) infinite;
+  }
+  .pulse-ring::after {
+    animation-delay: 1.6s;
+  }
+
+  .skip-link {
+    @apply absolute left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-lg transition-transform;
+  }
+  .skip-link:focus {
+    @apply translate-y-0;
+  }
+}
+
+/* ==========================================================================
+   Keyframes
+   ========================================================================== */
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, 8%, 0) scale(1.18);
+  }
+  100% {
+    transform: translate3d(-5%, -6%, 0) scale(0.95);
+  }
+}
+
+@keyframes pulse-out {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes equalize {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* ==========================================================================
+   Reduced motion
+   ux-guidelines #9 + #99 (severity: High) — respect the OS setting instead of
+   forcing scroll/parallax effects.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ambient: 0.0001; /* stretches ambient loop durations to ~forever */
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Ambient decoration is removed rather than frozen mid-animation. */
+  .aurora-field::before,
+  .aurora-field::after,
+  .pulse-ring::before,
+  .pulse-ring::after {
+    animation: none;
+  }
+  .card-lift:hover {
+    transform: none;
+  }
+}
