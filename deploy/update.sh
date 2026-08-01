@@ -116,6 +116,35 @@ else
   ok "installati"
 fi
 
+step "Spazio su disco"
+# Servono ~400 MB di node_modules più il lavoro di compilazione. Finire lo
+# spazio a metà di npm ci lascia node_modules monco e il sito senza dist/:
+# meglio accorgersene adesso e liberare spazio prima di toccare qualcosa.
+NEEDED_MB=1500
+FREE_MB="$(df -Pm "$APP_DIR" | awk 'NR==2 {print $4}')"
+if [[ "$FREE_MB" -lt "$NEEDED_MB" ]]; then
+  warn "solo ${FREE_MB} MB liberi (ne servono ~${NEEDED_MB}) — provo a fare pulizia"
+  npm cache clean --force >/dev/null 2>&1 || true
+  command -v apt-get >/dev/null 2>&1 && apt-get clean >/dev/null 2>&1 || true
+  journalctl --vacuum-size=100M >/dev/null 2>&1 || true
+  FREE_MB="$(df -Pm "$APP_DIR" | awk 'NR==2 {print $4}')"
+  ok "dopo la pulizia: ${FREE_MB} MB liberi"
+fi
+if [[ "$FREE_MB" -lt "$NEEDED_MB" ]]; then
+  echo
+  df -h "$APP_DIR" | sed 's/^/    /'
+  echo
+  echo "    Cosa occupa più spazio:"
+  du -xh --max-depth=1 / 2>/dev/null | sort -rh | head -8 | sed 's/^/      /'
+  echo
+  die "spazio insufficiente: ${FREE_MB} MB liberi, ne servono almeno ${NEEDED_MB}.
+  Libera spazio, oppure allarga il volume EBS dalla console AWS e poi:
+      sudo growpart /dev/nvme0n1 1 && sudo resize2fs /dev/nvme0n1p1
+  In alternativa usa il pacchetto (packaging/): il server non compila nulla
+  e gli servono 80 dipendenze invece di 400 MB."
+fi
+ok "${FREE_MB} MB liberi"
+
 step "Dipendenze"
 # npm ci rispetta il lockfile: stessa cosa che gira in locale, bit per bit.
 # L'output va su file e viene mostrato solo se qualcosa va storto: un errore
