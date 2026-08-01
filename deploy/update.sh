@@ -118,11 +118,30 @@ fi
 
 step "Dipendenze"
 # npm ci rispetta il lockfile: stessa cosa che gira in locale, bit per bit.
-npm ci --no-audit --no-fund --loglevel=error
+# L'output va su file e viene mostrato solo se qualcosa va storto: un errore
+# che lascia in mano al lettore soltanto il percorso di un log non serve.
+NPM_LOG="$APP_DIR/.update-npm.log"
+if ! npm ci --no-audit --no-fund > "$NPM_LOG" 2>&1; then
+  echo
+  echo "  ${BOLD}Ultime righe di npm:${OFF}"
+  grep -iE 'npm error|gyp ERR!|ENOSPC|ENOMEM|EACCES|killed' "$NPM_LOG" | tail -25 | sed 's/^/    /'
+  echo
+  echo "  ${BOLD}Contesto:${OFF}"
+  printf '    node %s   npm %s\n' "$(node -v)" "$(npm -v)"
+  printf '    disco:  %s\n' "$(df -h "$APP_DIR" | awk 'NR==2 {print $4" liberi su "$2}')"
+  printf '    memoria:%s\n' "$(free -h | awk 'NR==2 {print " "$7" disponibili di "$2}')"
+  echo
+  die "installazione delle dipendenze fallita. Log completo: $NPM_LOG"
+fi
 ok "installate"
 
 step "Compilazione del sito"
-npm run build --silent
+if ! npm run build > "$NPM_LOG" 2>&1; then
+  echo
+  tail -25 "$NPM_LOG" | sed 's/^/    /'
+  echo
+  die "compilazione fallita. Log completo: $NPM_LOG"
+fi
 [[ -f "$APP_DIR/dist/index.html" ]] || die "build non riuscita: dist/index.html non è stato generato"
 ok "dist/ rigenerato"
 

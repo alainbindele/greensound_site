@@ -39,3 +39,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Log temporanei generati da deploy/update.sh
+.update-npm.log
