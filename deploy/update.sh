@@ -97,6 +97,25 @@ else
   git --no-pager log --oneline "$BEFORE..$AFTER" 2>/dev/null | head -10 | sed 's/^/     /' || true
 fi
 
+step "Strumenti di compilazione"
+# better-sqlite3 include i binari già compilati, ma porta anche un binding.gyp:
+# npm ci lo ricompila comunque da sorgente e senza toolchain fallisce con
+# "not found: make". Verificato: `npm install` usa il prebuild, `npm ci` no.
+if command -v make >/dev/null 2>&1 && command -v g++ >/dev/null 2>&1; then
+  ok "già presenti"
+else
+  warn "mancanti — li installo (servono a npm ci per better-sqlite3)"
+  if command -v apt-get >/dev/null 2>&1; then
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq && apt-get install -y -qq build-essential python3 >/dev/null
+  else
+    dnf groupinstall -y -q "Development Tools" >/dev/null 2>&1 || true
+    dnf install -y -q python3 >/dev/null 2>&1 || true
+  fi
+  command -v make >/dev/null 2>&1 || die "installazione degli strumenti di compilazione fallita"
+  ok "installati"
+fi
+
 step "Dipendenze"
 # npm ci rispetta il lockfile: stessa cosa che gira in locale, bit per bit.
 npm ci --no-audit --no-fund --loglevel=error
