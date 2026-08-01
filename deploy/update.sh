@@ -174,6 +174,28 @@ fi
 [[ -f "$APP_DIR/dist/index.html" ]] || die "build non riuscita: dist/index.html non è stato generato"
 ok "dist/ rigenerato"
 
+step "Pulizia"
+# Vite, React, ESLint e compagnia servono solo a compilare: una volta che
+# dist/ esiste, in produzione girano cinque pacchetti. Rimuoverli fa scendere
+# node_modules da ~400 MB a ~80 MB fra un aggiornamento e l'altro.
+BEFORE_MB="$(du -sm "$APP_DIR/node_modules" 2>/dev/null | cut -f1 || echo 0)"
+npm prune --omit=dev --no-audit --no-fund >/dev/null 2>&1 || warn "prune non riuscito (non è grave)"
+AFTER_MB="$(du -sm "$APP_DIR/node_modules" 2>/dev/null | cut -f1 || echo 0)"
+ok "node_modules: ${BEFORE_MB} MB → ${AFTER_MB} MB"
+
+rm -f "$NPM_LOG"
+
+# La cache di npm è l'unica cosa che cresce davvero a ogni aggiornamento.
+# Sopra il mezzo giga la si svuota: costa qualche secondo in più al prossimo
+# update, ma su un disco piccolo è spazio che serve altrove.
+CACHE_MB="$(du -sm "$(npm config get cache)" 2>/dev/null | cut -f1 || echo 0)"
+if [[ "$CACHE_MB" -gt 500 ]]; then
+  npm cache clean --force >/dev/null 2>&1 || true
+  ok "cache npm svuotata (era ${CACHE_MB} MB)"
+else
+  ok "cache npm: ${CACHE_MB} MB"
+fi
+
 step "Permessi"
 mkdir -p "$APP_DIR/data/uploads"
 chown -R root:"$SVC_USER" "$APP_DIR"
