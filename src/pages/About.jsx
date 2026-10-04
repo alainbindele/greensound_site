@@ -114,12 +114,26 @@ export default function About() {
     return ExternalLink;
   };
 
+  // I link vengono inseriti a mano dal CMS, quindi arrivano in tutte le forme:
+  // "esempio.com", "https://esempio.com", "//esempio.com". Anteporre https://
+  // alla cieca produceva URL doppi come "https://https//esempio.com".
+  const toUrl = (value) => {
+    const raw = String(value ?? '').trim();
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `https://${raw.replace(/^\/+/, '')}`;
+  };
+
+  // Nel testo del link lo schema è rumore: si mostra solo il dominio.
+  const toLabel = (value) =>
+    String(value ?? '').trim().replace(/^(https?:)?\/\//i, '').replace(/\/+$/, '');
+
   const socialLinksFor = (person) =>
     [
-      { url: person.website ? `https://${person.website}` : null, label: person.website, kind: 'website' },
-      { url: person.instagram, label: 'Instagram', kind: 'instagram' },
-      { url: person.linkedin, label: 'LinkedIn', kind: 'linkedin' },
-      { url: person.twitter, label: 'Twitter', kind: 'twitter' }
+      { url: toUrl(person.website), label: toLabel(person.website), kind: 'website' },
+      { url: toUrl(person.instagram), label: 'Instagram', kind: 'instagram' },
+      { url: toUrl(person.linkedin), label: 'LinkedIn', kind: 'linkedin' },
+      { url: toUrl(person.twitter), label: 'Twitter', kind: 'twitter' }
     ].filter(link => link.url);
 
   const SocialRow = ({ person, align = 'center' }) => {
