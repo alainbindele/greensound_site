@@ -114,11 +114,14 @@ export default function About() {
     return ExternalLink;
   };
 
-  // I link vengono inseriti a mano dal CMS, quindi arrivano in tutte le forme:
-  // "esempio.com", "https://esempio.com", "//esempio.com". Anteporre https://
-  // alla cieca produceva URL doppi come "https://https//esempio.com".
+  // I link vengono inseriti a mano dal CMS, quindi arrivano in ogni forma:
+  // "esempio.com", "https://esempio.com", "//esempio.com" e anche
+  // "https//esempio.com", che è l'indirizzo copiato perdendo i due punti.
+  // Anteporre https:// alla cieca produceva "https://https//esempio.com".
+  const SCHEMA_SENZA_DUE_PUNTI = /^(https?)\/\//i;
+
   const toUrl = (value) => {
-    const raw = String(value ?? '').trim();
+    const raw = String(value ?? '').trim().replace(SCHEMA_SENZA_DUE_PUNTI, '$1://');
     if (!raw) return null;
     if (/^https?:\/\//i.test(raw)) return raw;
     return `https://${raw.replace(/^\/+/, '')}`;
@@ -126,7 +129,11 @@ export default function About() {
 
   // Nel testo del link lo schema è rumore: si mostra solo il dominio.
   const toLabel = (value) =>
-    String(value ?? '').trim().replace(/^(https?:)?\/\//i, '').replace(/\/+$/, '');
+    String(value ?? '')
+      .trim()
+      .replace(SCHEMA_SENZA_DUE_PUNTI, '')
+      .replace(/^(https?:)?\/\//i, '')
+      .replace(/\/+$/, '');
 
   const socialLinksFor = (person) =>
     [
