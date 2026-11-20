@@ -42,3 +42,7 @@ dist-ssr
 
 # Log temporanei generati da deploy/update.sh
 .update-npm.log
+
+# Materiale di lavoro per i contenuti (locandine, pagine salvate, pacchetti
+# da importare): finisce nel database del sito, non nel codice.
+import/
