@@ -75,7 +75,13 @@ if [[ ! -d "$APP_DIR/.git" ]]; then
   find "$APP_DIR" -mindepth 1 -maxdepth 1 ! -name data -exec rm -rf {} +
   cp -a "$TMP_CLONE/repo/." "$APP_DIR/"
   rm -rf "$TMP_CLONE"
-  [[ -d "$APP_DIR/data" ]] || { mkdir -p "$APP_DIR/data/uploads"; [[ -d "$STASH" ]] && cp -a "$STASH/." "$APP_DIR/data/"; }
+  # Scritto come if e non come `[[ ]] && cp`: su un server vuoto STASH non
+  # esiste, il test fallisce e con set -e lo script si fermerebbe qui in
+  # silenzio, a checkout fatto ma senza aver compilato nulla.
+  if [[ ! -d "$APP_DIR/data" ]]; then
+    mkdir -p "$APP_DIR/data/uploads"
+    if [[ -d "$STASH" ]]; then cp -a "$STASH/." "$APP_DIR/data/"; fi
+  fi
   ok "checkout creato da $REPO ($BRANCH)"
 fi
 
