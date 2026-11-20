@@ -15,6 +15,7 @@ import {
   Linkedin,
   Twitter,
   Users,
+  Sparkles,
 } from "lucide-react";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/Reveal";
 import { PageHero, SpotlightCard, SkeletonGrid, Chip } from "@/components/kit";
@@ -217,27 +218,51 @@ export default function About() {
 
               {creator && (
                 <Reveal className="mb-12">
-                  <SpotlightCard as="article" className="mx-auto max-w-4xl">
-                    <div className="flex flex-col items-center gap-8 p-8 md:flex-row md:p-10">
+                  {/* Il fondatore ha più risalto delle schede del team: bordo
+                      luminoso, velatura di colore, foto più grande con alone. */}
+                  <SpotlightCard
+                    as="article"
+                    className="mx-auto max-w-5xl shadow-glow ring-1 ring-inset ring-brand-solid/40"
+                  >
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 bg-gradient-to-br from-signal-nature/15 via-transparent to-signal-tech/10"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand to-transparent"
+                    />
+                    <div className="relative flex flex-col items-center gap-10 p-8 md:flex-row md:p-12">
                       {creator.image_url && (
-                        <img
-                          src={creator.image_url}
-                          alt={creator.name}
-                          width="160"
-                          height="160"
-                          loading="lazy"
-                          className="h-40 w-40 shrink-0 rounded-full object-cover ring-4 ring-brand/40"
-                        />
+                        <div className="relative shrink-0">
+                          <div
+                            aria-hidden="true"
+                            className="absolute -inset-5 rounded-full bg-gradient-to-br from-signal-nature/40 to-signal-tech/30 blur-2xl"
+                          />
+                          <div className="relative rounded-full bg-gradient-to-br from-signal-nature via-signal-tech to-solar p-1 shadow-glow">
+                            <img
+                              src={creator.image_url}
+                              alt={creator.name}
+                              width="224"
+                              height="224"
+                              loading="lazy"
+                              className="h-48 w-48 rounded-full object-cover ring-4 ring-background md:h-56 md:w-56"
+                            />
+                          </div>
+                        </div>
                       )}
                       <div className="flex-1 text-center md:text-left">
-                        <Chip tone="solar" className="mb-3">
+                        <Chip tone="solar" className="mb-4 px-4 py-1.5 text-sm">
+                          <Sparkles className="h-4 w-4" aria-hidden="true" />
                           {language === 'it' ? 'Fondatore' : 'Founder'}
                         </Chip>
-                        <h3 className="mb-1 text-3xl font-semibold">{creator.name}</h3>
-                        <p className="mb-4 text-xl font-semibold text-brand">
+                        <h3 className="text-gradient-bio mb-2 text-4xl font-bold md:text-5xl">
+                          {creator.name}
+                        </h3>
+                        <p className="mb-5 text-xl font-semibold text-brand md:text-2xl">
                           {language === 'it' ? creator.role_it : creator.role_en}
                         </p>
-                        <p className="mb-6 leading-relaxed text-muted-foreground">
+                        <p className="mb-6 text-lg leading-relaxed text-muted-foreground">
                           {language === 'it' ? creator.description_it : creator.description_en}
                         </p>
                         <div className="flex justify-center md:justify-start">
