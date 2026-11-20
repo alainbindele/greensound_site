@@ -17,24 +17,9 @@
 
     <title>Greensound Project</title>
 
-    <script>
-      // Apply the stored theme before first paint so the page never flashes
-      // light before switching to dark.
-      (function () {
-        try {
-          var stored = localStorage.getItem("greensound-theme");
-          var hour = new Date().getHours();
-          var dark = stored
-            ? stored === "dark"
-            : window.matchMedia("(prefers-color-scheme: dark)").matches ||
-              hour < 6 ||
-              hour >= 18;
-          if (dark) document.documentElement.classList.add("dark");
-        } catch (e) {
-          /* storage blocked — fall back to light */
-        }
-      })();
-    </script>
+    <!-- Sets the theme before first paint. External, not inline: the
+         production CSP (script-src 'self') blocks inline scripts. -->
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>
