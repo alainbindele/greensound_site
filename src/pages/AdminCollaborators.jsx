@@ -19,7 +19,8 @@ import {
   Instagram, 
   Linkedin, 
   Twitter,
-  Upload // Added
+  Upload, // Added
+  Sparkles
 } from "lucide-react";
 import { UploadFile } from "@/api/integrations";
 import { isAdmin } from "@/lib/admin";
@@ -53,7 +54,8 @@ export default function AdminCollaborators() {
     linkedin: "",
     twitter: "",
     order: 0,
-    is_active: true
+    is_active: true,
+    is_creator: false
   });
 
   const content = {
@@ -75,6 +77,8 @@ export default function AdminCollaborators() {
       socialLinks: "Link Social",
       order: "Ordine",
       active: "Attivo",
+      creator: "Fondatore",
+      creatorHint: "Scheda in evidenza in cima a Chi siamo. Ce n'è una sola: attivarla qui la toglie agli altri.",
       uploadImage: "Carica Immagine",
       imageUrlPlaceholder: "Oppure incolla un URL immagine qui",
       noCollaborators: "Nessun collaboratore trovato",
@@ -101,6 +105,8 @@ export default function AdminCollaborators() {
       socialLinks: "Social Links",
       order: "Order",
       active: "Active",
+      creator: "Founder",
+      creatorHint: "Highlighted card at the top of About. There is only one: turning it on here turns it off for the others.",
       uploadImage: "Upload Image", 
       imageUrlPlaceholder: "Or paste an image URL here",
       noCollaborators: "No collaborators found",
@@ -156,10 +162,18 @@ export default function AdminCollaborators() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingId) {
-        await Collaborator.update(editingId, formData);
-      } else {
-        await Collaborator.create(formData);
+      const saved = editingId
+        ? await Collaborator.update(editingId, formData)
+        : await Collaborator.create(formData);
+      // Chi siamo mostra in evidenza un solo fondatore e nasconde gli altri
+      // segnati così: se questa scheda lo diventa, si toglie agli altri.
+      if (formData.is_creator) {
+        const savedId = editingId || saved?.id;
+        await Promise.all(
+          collaborators
+            .filter((c) => c.is_creator && c.id !== savedId)
+            .map((c) => Collaborator.update(c.id, { is_creator: false }))
+        );
       }
       resetForm();
       loadCollaborators();
@@ -198,7 +212,8 @@ export default function AdminCollaborators() {
       linkedin: "",
       twitter: "",
       order: 0,
-      is_active: true
+      is_active: true,
+      is_creator: false
     });
     setEditingId(null);
     setShowForm(false);
@@ -405,12 +420,28 @@ export default function AdminCollaborators() {
                       placeholder="example.com"
                     />
                   </div>
-                  <div className="flex items-center gap-4">
-                    <label className="text-sm font-medium">{currentContent.active}</label>
-                    <Switch
-                      checked={formData.is_active}
-                      onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
-                    />
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-4">
+                      <label htmlFor="collaborator-active" className="text-sm font-medium">{currentContent.active}</label>
+                      <Switch
+                        id="collaborator-active"
+                        checked={formData.is_active}
+                        onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-4">
+                        <label htmlFor="collaborator-creator" className="text-sm font-medium">{currentContent.creator}</label>
+                        <Switch
+                          id="collaborator-creator"
+                          checked={!!formData.is_creator}
+                          onCheckedChange={(checked) => setFormData({...formData, is_creator: checked})}
+                        />
+                      </div>
+                      <p className={`mt-1 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {currentContent.creatorHint}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -493,6 +524,12 @@ export default function AdminCollaborators() {
                       </div>
                     </div>
                     <div className="flex gap-1">
+                      {collaborator.is_creator && (
+                        <Badge className="bg-amber-500/15 text-amber-500 border-amber-500/30 hover:bg-amber-500/15">
+                          <Sparkles className="w-3 h-3 mr-1" aria-hidden="true" />
+                          {currentContent.creator}
+                        </Badge>
+                      )}
                       {!collaborator.is_active && (
                         <Badge variant="secondary">Inattivo</Badge>
                       )}
