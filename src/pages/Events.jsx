@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Event } from "@/api/entities";
 import { useLanguage } from "@/components/AppContext";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, ExternalLink, Star, CalendarDays } from "lucide-react";
+import { Calendar, MapPin, ExternalLink, Star, CalendarDays, Maximize2 } from "lucide-react";
 import { format } from "date-fns";
 import { it, enUS } from "date-fns/locale";
 import ImageSlideshow from "@/components/ImageSlideshow";
+import PosterLightbox from "@/components/PosterLightbox";
 import { Stagger, StaggerItem } from "@/components/motion/Reveal";
 import {
   PageHero,
@@ -20,6 +21,15 @@ export default function Events() {
   const { language } = useLanguage();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  // The event whose poster is open full screen, or null.
+  const [enlarged, setEnlarged] = useState(null);
+  // EventCard is re-created on every render, so the button that opened the
+  // viewer no longer exists when it closes: focus is handed back by event id.
+  const lastEnlargedId = useRef(null);
+  const enlarge = (event) => {
+    lastEnlargedId.current = event.id;
+    setEnlarged(event);
+  };
 
   const content = {
     it: {
@@ -35,6 +45,7 @@ export default function Events() {
       past: "Passati",
       pastHint: "L'archivio delle performance già andate in scena.",
       loading: "Caricamento eventi",
+      enlarge: "Ingrandisci la locandina",
     },
     en: {
       eyebrow: "Agenda",
@@ -49,6 +60,7 @@ export default function Events() {
       past: "Past",
       pastHint: "The archive of performances already staged.",
       loading: "Loading events",
+      enlarge: "Enlarge the poster",
     },
   };
 
@@ -96,8 +108,21 @@ export default function Events() {
     const images = getEventImages(event);
     const title = language === 'it' ? event.title_it : event.title_en;
 
+    // A click anywhere on the card opens the poster, except on the card's own
+    // links and buttons (external link, slideshow controls), which keep their
+    // job. Keyboard users get the explicit enlarge button below.
+    const openPoster = (e) => {
+      if (images.length === 0) return;
+      if (e.target.closest("a, button")) return;
+      enlarge(event);
+    };
+
     return (
-      <SpotlightCard as="article" className="flex h-full flex-col">
+      <SpotlightCard
+        as="article"
+        className={`flex h-full flex-col ${images.length > 0 ? "cursor-zoom-in" : ""}`}
+        onClick={openPoster}
+      >
         {images.length > 0 && (
           <div className="relative h-48 overflow-hidden">
             <div className={upcoming ? '' : 'opacity-60 saturate-50'}>
@@ -108,6 +133,17 @@ export default function Events() {
                 autoPlay={upcoming}
               />
             </div>
+            <button
+              type="button"
+              onClick={() => enlarge(event)}
+              data-enlarge={event.id}
+              aria-label={`${currentContent.enlarge}: ${title}`}
+              className={`absolute z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-black/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                images.length > 1 ? "bottom-3 left-3" : "right-3 top-3"
+              }`}
+            >
+              <Maximize2 className="h-4 w-4" aria-hidden="true" />
+            </button>
             <div className="absolute left-4 top-4 z-10 flex gap-2">
               {event.featured && (
                 <Chip tone="solar" className="backdrop-blur">
@@ -230,6 +266,28 @@ export default function Events() {
           </div>
         )}
       </div>
+
+      <PosterLightbox
+        open={enlarged !== null}
+        onOpenChange={(open) => { if (!open) setEnlarged(null); }}
+        images={enlarged ? getEventImages(enlarged) : []}
+        title={enlarged ? (language === "it" ? enlarged.title_it : enlarged.title_en) : ""}
+        caption={enlarged
+          ? [
+              language === "it" ? enlarged.title_it : enlarged.title_en,
+              formatEventDate(enlarged.date),
+              enlarged.location,
+            ].filter(Boolean).join(" · ")
+          : ""}
+        language={language}
+        onCloseAutoFocus={(e) => {
+          const button = document.querySelector(`[data-enlarge="${lastEnlargedId.current}"]`);
+          if (button) {
+            e.preventDefault();
+            button.focus();
+          }
+        }}
+      />
     </div>
   );
 }
